@@ -1,12 +1,12 @@
 const canvas = document.querySelector("canvas"),
-      toolBtns = document.querySelectorAll(".tool"),
-      fillColor = document.querySelector("#fill-color"),
-      sizeSlider = document.querySelector("#size-slider"),
-      colorBtns = document.querySelectorAll(".colors .option"),
-      colorPicker = document.querySelector("#color-picker"),
-      clearCanvas = document.querySelector(".clear-canvas"),
-      saveImg = document.querySelector(".save-img"),
-      ctx = canvas.getContext("2d");
+    toolBtns = document.querySelectorAll(".tool"),
+    fillColor = document.querySelector("#fill-color"),
+    sizeSlider = document.querySelector("#size-slider"),
+    colorBtns = document.querySelectorAll(".colors .option"),
+    colorPicker = document.querySelector("#color-picker"),
+    clearCanvas = document.querySelector(".clear-canvas"),
+    saveImg = document.querySelector(".save-img"),
+    ctx = canvas.getContext("2d");
 
 // Global variables with default values
 let prevMouseX, prevMouseY, snapshot,
@@ -28,6 +28,27 @@ window.addEventListener("load", () => {
     canvas.height = canvas.offsetHeight;
     setCanvasBackground();
 });
+
+// Convert touch/mouse points to canvas coordinates
+const getCanvasCoordinates = (event) => {
+    const rect = canvas.getBoundingClientRect(); // Get canvas position relative to the viewport
+    let clientX, clientY;
+
+    // Handle both mouse and touch events
+    if (event.touches) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+    } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }
+
+    // Map client coordinates to canvas coordinates
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
+};
 
 // Start drawing
 const startDraw = (x, y) => {
@@ -64,45 +85,6 @@ const stopDraw = () => {
     isDrawing = false;
 };
 
-// Convert touch points to canvas coordinates
-const getCanvasCoordinates = (event) => {
-    const rect = canvas.getBoundingClientRect();
-    if (event.touches) { // For touch devices
-        return {
-            x: event.touches[0].clientX - rect.left,
-            y: event.touches[0].clientY - rect.top
-        };
-    } else { // For mouse
-        return {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
-        };
-    }
-};
-
-// Event listeners for mouse and touch events
-canvas.addEventListener("mousedown", (e) => {
-    const { x, y } = getCanvasCoordinates(e);
-    startDraw(x, y);
-});
-canvas.addEventListener("mousemove", (e) => {
-    const { x, y } = getCanvasCoordinates(e);
-    drawing(x, y);
-});
-canvas.addEventListener("mouseup", stopDraw);
-
-canvas.addEventListener("touchstart", (e) => {
-    e.preventDefault(); // Prevent scrolling while drawing
-    const { x, y } = getCanvasCoordinates(e);
-    startDraw(x, y);
-});
-canvas.addEventListener("touchmove", (e) => {
-    e.preventDefault(); // Prevent scrolling while drawing
-    const { x, y } = getCanvasCoordinates(e);
-    drawing(x, y);
-});
-canvas.addEventListener("touchend", stopDraw);
-
 // Function to draw a rectangle
 const drawRect = (x, y) => {
     if (!fillColor.checked) {
@@ -128,6 +110,29 @@ const drawTriangle = (x, y) => {
     ctx.closePath();
     fillColor.checked ? ctx.fill() : ctx.stroke();
 };
+
+// Event listeners for mouse and touch events
+canvas.addEventListener("mousedown", (e) => {
+    const { x, y } = getCanvasCoordinates(e);
+    startDraw(x, y);
+});
+canvas.addEventListener("mousemove", (e) => {
+    const { x, y } = getCanvasCoordinates(e);
+    drawing(x, y);
+});
+canvas.addEventListener("mouseup", stopDraw);
+
+canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault(); // Prevent scrolling while drawing
+    const { x, y } = getCanvasCoordinates(e);
+    startDraw(x, y);
+});
+canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault(); // Prevent scrolling while drawing
+    const { x, y } = getCanvasCoordinates(e);
+    drawing(x, y);
+});
+canvas.addEventListener("touchend", stopDraw);
 
 // Tool selection
 toolBtns.forEach(btn => {
